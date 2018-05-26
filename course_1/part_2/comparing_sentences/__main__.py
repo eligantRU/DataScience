@@ -1,4 +1,5 @@
-from collections import defaultdict, Counter
+from collections import defaultdict, Counter, OrderedDict
+from operator import itemgetter
 import scipy.spatial
 import numpy as np
 import re
@@ -42,14 +43,14 @@ def get_unique_lexems(sentences):
 
 
 def get_counted_sentence(sentence):
-    res = {}
+    result = {}
     lexems_in_sentence = get_lexems_in_sentence(sentence)
     lexems = get_lexems(sentence)
     for unique_lexem in lexems_in_sentence:
         count = lexems.count(unique_lexem)
         if count is not 0:
-            res[unique_lexem] = count
-    return res
+            result[unique_lexem] = count
+    return result
 
 
 def get_counted_sentences(sentences):
@@ -67,7 +68,7 @@ def get_counted_sentences(sentences):
 def get_matrix(counted_sentences):
     mat = []
     for counted_sentence in counted_sentences:
-        mat.append(list(counted_sentence.values()))  # TODO: sort items by key
+        mat.append(list(OrderedDict(sorted(counted_sentence.items())).values()))
     return np.array(mat)
 
 
@@ -77,9 +78,9 @@ def main():
     counted_sentences = get_counted_sentences(sentences)
 
     mat = get_matrix(counted_sentences)
-    for m in mat:
-        print(scipy.spatial.distance.cosine(mat[0], m))
 
+    distances = [scipy.spatial.distance.cosine(mat[0], m) for m in mat]
+    print(sorted([(i, distance) for i, distance in enumerate(distances)], key=itemgetter(1)))
     inp.close()
 
 
